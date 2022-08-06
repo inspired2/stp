@@ -1,9 +1,9 @@
-use serde_json;
 use std::{
     error::Error,
     fs::File,
-    net::{IpAddr, Ipv4Addr, SocketAddr, ToSocketAddrs, AddrParseError},
-    path::Path, io::ErrorKind,
+    io::ErrorKind,
+    net::{IpAddr, Ipv4Addr, SocketAddr, ToSocketAddrs},
+    path::Path,
 };
 
 #[derive(serde::Deserialize)]

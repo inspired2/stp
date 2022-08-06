@@ -3,7 +3,6 @@ use std::{
     net::{TcpListener, TcpStream, ToSocketAddrs},
 };
 
-
 pub struct StpServer {
     listener: TcpListener,
 }
@@ -13,8 +12,7 @@ impl StpServer {
         let listener = TcpListener::bind(addr)?;
         Ok(Self { listener })
     }
-    pub fn incoming(&self) -> impl Iterator<Item = Result<TcpStream, std::io::Error>> +'_{
+    pub fn incoming(&self) -> impl Iterator<Item = Result<TcpStream, std::io::Error>> + '_ {
         self.listener.incoming()
     }
-
 }
