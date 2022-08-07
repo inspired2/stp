@@ -1,26 +1,28 @@
 use std::error::Error;
 use std::io::Write;
 
-use stp::{Command, CommandData};
-use stp::{ExecutionResult, StpClient};
+use tcp_smart_socket::{Command, CommandData};
+use tcp_smart_socket::{ExecutionResult, StpClient};
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let config = stp::get_configuration()?;
+    let config = tcp_smart_socket::get_configuration()?;
     let mut client = StpClient::connect(config)?;
     let stdin = std::io::stdin();
     let mut stdout = std::io::stdout();
     let mut buf = String::new();
     loop {
-        writeln!(stdout, "Enter device name")?;
+        writeln!(stdout, "Enter device name or 'exit' to quit")?;
 
         stdin.read_line(&mut buf).ok();
         let device_name = buf.trim().to_owned();
+        if device_name.to_lowercase() == "exit" { break }
         buf.truncate(0);
 
         writeln!(stdout, "Enter command")?;
         writeln!(stdout, "For smart socket:")?;
         writeln!(stdout, "11 - turn on")?;
-        writeln!(stdout, "10 - trun off")?;
+        writeln!(stdout, "10 - turn off")?;
+        writeln!(stdout, "12 - get state")?;
 
         stdin.read_line(&mut buf).ok();
         let cmd_code = buf.trim().parse::<u8>().unwrap_or(99);
@@ -32,7 +34,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                 let exec_res: ExecutionResult = serde_json::from_str(&resp)?;
                 writeln!(stdout, "{:?}", exec_res).unwrap();
             }
-            Command::Exit => break,
             Command::Unknown => {
                 println!("Unknown command, please enter valid data");
             }

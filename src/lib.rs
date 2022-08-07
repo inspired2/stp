@@ -34,7 +34,6 @@ pub fn recv_string<R: Read>(mut dest: R) -> Result<String, Box<dyn Error>> {
 pub fn get_configuration() -> Result<Settings, Box<dyn std::error::Error>> {
     let local_dir = std::env::current_dir()?;
     let path = local_dir.join("settings.json");
-    println!("{:?}", &path);
     if !path.exists() {
         println!("Unable to find settings.json (must be in std::env::current_dir()). Will load default config");
     }
