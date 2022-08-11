@@ -4,9 +4,10 @@ use std::io::Write;
 use tcp_smart_socket::{Command, CommandData};
 use tcp_smart_socket::{ExecutionResult, StpClient};
 
-fn main() -> Result<(), Box<dyn Error>> {
-    let config = tcp_smart_socket::get_configuration()?;
-    let mut client = StpClient::connect(config)?;
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn Error>> {
+    let addr = tcp_smart_socket::get_configuration().await?.get_addr();
+    let mut client = StpClient::connect(addr).await?;
     let stdin = std::io::stdin();
     let mut stdout = std::io::stdout();
     let mut buf = String::new();
@@ -30,7 +31,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         match &command {
             Command::Execute(CommandData { .. }) => {
                 let stringified_command = serde_json::to_string(&command).unwrap();
-                let resp = client.send_req(stringified_command)?;
+                let resp = client.send_req(stringified_command).await?;
                 let exec_res: ExecutionResult = serde_json::from_str(&resp)?;
                 writeln!(stdout, "{:?}", exec_res).unwrap();
             }

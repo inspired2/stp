@@ -1,44 +1,47 @@
 use smart_house::{Command, ExecutionResult, PowerSocket, SmartDeviceList};
 use std::{
     error::Error,
-    net::TcpStream,
-    sync::{Arc, Mutex},
+    sync::Arc,
 };
+use tokio::net::TcpStream;
 use tcp_smart_socket::{recv_string, send_string, StpServer};
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn Error>> {
+    let addr = tcp_smart_socket::get_configuration().await?.get_addr();
 
-fn main() -> Result<(), Box<dyn Error>> {
-    let config = tcp_smart_socket::get_configuration()?;
-    let server = StpServer::bind(config)?;
+    let server = StpServer::bind(addr).await?;
     let devices = create_device_list();
-    let arc_devices = Arc::new(Mutex::new(devices));
+    let arc_devices = Arc::new(devices);
 
     loop {
-        if let Some(stream) = server.incoming().next() {
-            let stream = stream?;
-            println!("Incoming connection: {:?}", stream.peer_addr());
+        if let Ok((stream, addr)) = server.incoming().await {
+
+            println!("Incoming connection: {:?}", addr);
             let cloned_devices = arc_devices.clone();
-            std::thread::spawn(move || {
-                handle_connection(stream, cloned_devices).ok();
+            tokio::spawn(async {
+                handle_connection(stream, cloned_devices).await.ok();
             });
         }
     }
 }
-fn handle_connection(
+async fn handle_connection(
     mut stream: TcpStream,
-    devices: Arc<Mutex<SmartDeviceList>>,
-) -> Result<(), Box<dyn Error>> {
-    while let Ok(s) = crate::recv_string(&mut stream) {
-        let command: Command = serde_json::from_str(&s)?;
+    devices: Arc<SmartDeviceList>,
+) -> Result<(), String> {
+    while let Ok(s) = crate::recv_string(&mut stream).await {
+        if serde_json::from_str::<Command>(&s).is_err() { continue }
+        let command: Command = serde_json::from_str(&s).unwrap();
         println!("incoming command: {:?}", command);
         match command {
             Command::Execute(cmd) => {
-                let mut devices = devices.lock().unwrap();
+
                 let response = match devices.execute_command(cmd) {
                     Ok(res) => res,
                     Err(e) => ExecutionResult::Error(e),
                 };
-                let serialized = serde_json::to_string(&response)?;
-                crate::send_string(&mut stream, serialized)?;
+                let serialized = serde_json::to_string(&response).map_err(|e| e.to_string())?;
+                crate::send_string(&mut stream, serialized).await.map_err(|e| e.to_string())?;
+                
             }
             Command::Unknown => {
                 println!("Received unknown command. Skipping");
