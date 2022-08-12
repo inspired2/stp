@@ -1,8 +1,4 @@
-use std::{
-    fs::File,
-    net::{Ipv4Addr},
-    path::Path,
-};
+use std::{fs::File, net::Ipv4Addr, path::Path};
 
 use tokio::net::ToSocketAddrs;
 #[derive(Debug, serde::Deserialize)]
@@ -16,7 +12,7 @@ impl Settings {
         if let Ok(file) = File::open(path) {
             let settings: Settings = serde_json::from_reader(file).unwrap_or_default();
             if settings.is_valid() {
-                return settings
+                return settings;
             }
         }
         Self::default()
@@ -27,7 +23,9 @@ impl Settings {
         (v4, self.port)
     }
     pub fn is_valid(&self) -> bool {
-        if self.host.parse::<Ipv4Addr>().is_err() { return false }
+        if self.host.parse::<Ipv4Addr>().is_err() {
+            return false;
+        }
         true
     }
 }

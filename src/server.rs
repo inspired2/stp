@@ -1,9 +1,5 @@
-use std::{
-    error::Error, net::SocketAddr,
- };
-use tokio::net::{TcpListener, 
-TcpStream, 
-ToSocketAddrs};
+use std::{error::Error, net::SocketAddr};
+use tokio::net::{TcpListener, TcpStream, ToSocketAddrs};
 pub struct StpServer {
     listener: TcpListener,
 }

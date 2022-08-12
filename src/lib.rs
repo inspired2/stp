@@ -3,16 +3,17 @@ mod config;
 mod server;
 
 use crate::config::Settings;
-use std::{
-    error::Error
-};
-use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, AsyncReadExt}; 
 pub use client::*;
 pub use config::*;
 pub use server::*;
 pub use smart_house::*;
+use std::error::Error;
+use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
-pub async fn send_string<D: AsRef<str>, W: AsyncWrite + Unpin>(mut dest: W, data: D) -> Result<(), Box<dyn Error>> {
+pub async fn send_string<D: AsRef<str>, W: AsyncWrite + Unpin>(
+    mut dest: W,
+    data: D,
+) -> Result<(), Box<dyn Error>> {
     let data = data.as_ref().as_bytes();
     let len = data.len() as u32;
     let len_bytes = len.to_be_bytes();

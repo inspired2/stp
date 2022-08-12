@@ -16,7 +16,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
         stdin.read_line(&mut buf).ok();
         let device_name = buf.trim().to_owned();
-        if device_name.to_lowercase() == "exit" { break }
+        if device_name.to_lowercase() == "exit" {
+            break;
+        }
         buf.truncate(0);
 
         writeln!(stdout, "Enter command")?;
