@@ -9,5 +9,5 @@ edition = "2021"
 serde = {features = ["derive"], version = "1.0.137"}
 tokio = {features = ["full"], version = "1"}
 serde_json = "1.0.82"
-#smart-house = {git = "https://github.com/inspired2/smart-house.git"}
-smart-house = {path = "../smart-house-lib"}
+smart-house = {git = "https://github.com/inspired2/smart-house.git"}
+#smart-house = {path = "../smart-house-lib"}
