@@ -1,4 +1,4 @@
-use smart_house::{Command, ExecutionResult, PowerSocket, SmartDeviceList};
+use smart_house::{Command, PowerSocket, SmartDeviceList};
 use std::{error::Error, sync::Arc};
 use tcp_smart_socket::{recv_string, send_string, StpServer};
 use tokio::net::TcpStream;
@@ -32,10 +32,7 @@ async fn handle_connection(
         println!("incoming command: {:?}", command);
         match command {
             Command::Execute(cmd) => {
-                let response = match devices.execute_command(cmd) {
-                    Ok(res) => res,
-                    Err(e) => ExecutionResult::Error(e),
-                };
+                let response = devices.execute_command(cmd);
                 let serialized = serde_json::to_string(&response).map_err(|e| e.to_string())?;
                 crate::send_string(&mut stream, serialized)
                     .await
