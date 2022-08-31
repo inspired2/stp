@@ -7,6 +7,8 @@ pub use client::*;
 pub use config::*;
 pub use server::*;
 pub use smart_house::*;
+pub use smart_house::CustomError;
+
 use std::error::Error;
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
