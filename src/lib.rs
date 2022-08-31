@@ -16,11 +16,15 @@ pub async fn send_string<D: AsRef<str>, W: AsyncWrite + Unpin>(
     mut dest: W,
     data: D,
 ) -> Result<(), Box<dyn Error>> {
+    println!("enter send_string");
     let data = data.as_ref().as_bytes();
     let len = data.len() as u32;
     let len_bytes = len.to_be_bytes();
+    dest.write_all(&[]).await?;
+    println!("begin writint to stream");
     dest.write_all(&len_bytes).await?;
     dest.write_all(data).await?;
+    println!("before returning");
     Ok(())
 }
 pub async fn recv_string<R: AsyncRead + Unpin>(mut dest: R) -> Result<String, String> {

@@ -13,7 +13,6 @@ impl StpClient {
         crate::send_string(&mut self.stream, data)
             .await
             .map_err(|e| e.to_string())?;
-        println!("waiting for response");
         crate::recv_string(&mut self.stream).await
     }
 }

@@ -2,8 +2,7 @@ use smart_house::{DeviceCommand, Executable, PowerSocket};
 use std::{net::SocketAddr, sync::Arc};
 use tokio::{
     net::{TcpListener, TcpStream, ToSocketAddrs},
-    sync::Mutex,
-};
+    sync::Mutex, task::JoinHandle};
 pub struct StpServer {
     listener: TcpListener,
 }
@@ -21,20 +20,24 @@ impl StpServer {
 pub struct SocketServer {
     smart_socket: Arc<Mutex<PowerSocket>>,
     connection: StpServer,
+    handles: Vec<JoinHandle<Result<(), String>>>
 }
+
 impl SocketServer {
     pub async fn with_addr(addr: impl ToSocketAddrs, socket: PowerSocket) -> Result<Self, String> {
         let server = StpServer::bind(addr).await?;
         Ok(Self {
             connection: server,
             smart_socket: Arc::new(Mutex::new(socket)),
+            handles: Default::default()
         })
     }
     pub async fn run(&mut self) {
         loop {
             if let Ok((stream, _addr)) = self.connection.incoming().await {
                 let smart_socket = Arc::clone(&self.smart_socket);
-                tokio::spawn(async move { handle_connection(stream, smart_socket).await });
+                let handle = tokio::spawn(async move { handle_connection(stream, smart_socket).await });
+                self.handles.push(handle);
             }
         }
     }
