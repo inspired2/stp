@@ -1,5 +1,6 @@
 use smart_house::{DeviceCommand, ExecutionResult, PowerSocketCommand};
 use tokio::net::{TcpStream, ToSocketAddrs};
+#[derive(Debug)]
 pub struct StpClient {
     stream: TcpStream,
 }
@@ -15,7 +16,7 @@ impl StpClient {
         crate::recv_string(&mut self.stream).await
     }
 }
-
+#[derive(Debug)]
 pub struct SmartSocketClient {
     connection: StpClient,
 }
