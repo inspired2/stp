@@ -1,4 +1,4 @@
-use smart_house::{DeviceCommand, Executable, PowerSocket};
+use smart_house::{DeviceCommand, Executable, PowerSocket, ExecutionResult, CustomError};
 use std::{net::SocketAddr, sync::Arc};
 use tokio::{
     net::{TcpListener, TcpStream, ToSocketAddrs},
@@ -22,6 +22,12 @@ pub struct SocketServer {
     connection: StpServer,
     handles: Vec<JoinHandle<Result<(), String>>>
 }
+
+// impl Drop for SocketServer {
+//     fn drop(&mut self) {
+//         self.connection.
+//     }
+// }
 
 impl SocketServer {
     pub async fn with_addr(addr: impl ToSocketAddrs, socket: PowerSocket) -> Result<Self, String> {
@@ -54,6 +60,9 @@ async fn handle_connection(
             let result = device.execute(cmd);
             drop(device);
             crate::send_string(&mut stream, serde_json::to_string(&result).unwrap()).await.map_err(|e| e.to_string())?;
+        } else {
+            let result = ExecutionResult::Error(CustomError::CommandExecutionFailure("Command unknown".into()));
+            crate::send_string(&mut stream, serde_json::to_string(&result).unwrap()).await.map_err(|e|e.to_string())?;
         }
     }
     Ok(())

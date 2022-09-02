@@ -1,5 +1,5 @@
 use smart_house::{DeviceCommand, ExecutionResult, PowerSocketCommand};
-use tokio::net::{TcpStream, ToSocketAddrs};
+use tokio::{net::{TcpStream, ToSocketAddrs}, io::AsyncWriteExt};
 #[derive(Debug)]
 pub struct StpClient {
     stream: TcpStream,
@@ -19,6 +19,11 @@ impl StpClient {
 #[derive(Debug)]
 pub struct SmartSocketClient {
     connection: StpClient,
+}
+impl Drop for SmartSocketClient {
+    fn drop(&mut self) {
+        self.connection.stream.flush();
+    }
 }
 
 impl SmartSocketClient {
@@ -48,4 +53,5 @@ impl SmartSocketClient {
         let command = PowerSocketCommand::GetState;
         self.send_command(command).await
     }
+
 }
