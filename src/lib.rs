@@ -20,9 +20,12 @@ pub async fn send_string<D: AsRef<str>, W: AsyncWrite + Unpin>(
 
     let len = data.len() as u32;
     let len_bytes = len.to_be_bytes();
-    
+    dest.flush().await?;
     dest.write_all(&len_bytes).await?;
+
+    dest.flush().await?;
     dest.write_all(data).await?;
+    
     dest.flush().await?;
     Ok(())
 }
