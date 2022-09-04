@@ -1,8 +1,10 @@
-use smart_house::{DeviceCommand, Executable, PowerSocket, ExecutionResult, CustomError};
+use smart_house::{CustomError, DeviceCommand, Executable, ExecutionResult, PowerSocket};
 use std::{net::SocketAddr, sync::Arc};
 use tokio::{
     net::{TcpListener, TcpStream, ToSocketAddrs},
-    sync::Mutex, task::JoinHandle};
+    sync::Mutex,
+    task::JoinHandle,
+};
 pub struct StpServer {
     listener: TcpListener,
 }
@@ -20,14 +22,14 @@ impl StpServer {
 pub struct SocketServer {
     smart_socket: Arc<Mutex<PowerSocket>>,
     connection: StpServer,
-    handles: Vec<JoinHandle<Result<(), String>>>
+    handles: Vec<JoinHandle<Result<(), String>>>,
 }
 
-// impl Drop for SocketServer {
-//     fn drop(&mut self) {
-//         self.connection.
-//     }
-// }
+impl Drop for SocketServer {
+    fn drop(&mut self) {
+        self.handles.iter_mut().for_each(|handle| handle.abort());
+    }
+}
 
 impl SocketServer {
     pub async fn with_addr(addr: impl ToSocketAddrs, socket: PowerSocket) -> Result<Self, String> {
@@ -35,14 +37,15 @@ impl SocketServer {
         Ok(Self {
             connection: server,
             smart_socket: Arc::new(Mutex::new(socket)),
-            handles: Default::default()
+            handles: Default::default(),
         })
     }
     pub async fn run(&mut self) {
         loop {
             if let Ok((stream, _addr)) = self.connection.incoming().await {
                 let smart_socket = Arc::clone(&self.smart_socket);
-                let handle = tokio::spawn(async move { handle_connection(stream, smart_socket).await });
+                let handle =
+                    tokio::spawn(async move { handle_connection(stream, smart_socket).await });
                 self.handles.push(handle);
             }
         }
@@ -59,10 +62,16 @@ async fn handle_connection(
             let mut device = device.lock().await;
             let result = device.execute(cmd);
             drop(device);
-            crate::send_string(&mut stream, serde_json::to_string(&result).unwrap()).await.map_err(|e| e.to_string())?;
+            crate::send_string(&mut stream, serde_json::to_string(&result).unwrap())
+                .await
+                .map_err(|e| e.to_string())?;
         } else {
-            let result = ExecutionResult::Error(CustomError::CommandExecutionFailure("Command unknown".into()));
-            crate::send_string(&mut stream, serde_json::to_string(&result).unwrap()).await.map_err(|e|e.to_string())?;
+            let result = ExecutionResult::Error(CustomError::CommandExecutionFailure(
+                "Command unknown".into(),
+            ));
+            crate::send_string(&mut stream, serde_json::to_string(&result).unwrap())
+                .await
+                .map_err(|e| e.to_string())?;
         }
     }
     Ok(())
