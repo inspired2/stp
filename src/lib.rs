@@ -23,7 +23,7 @@ pub async fn send_string<D: AsRef<str>, W: AsyncWrite + Unpin>(
     
     dest.write_all(&len_bytes).await?;
     dest.write_all(data).await?;
-
+    dest.flush().await?;
     Ok(())
 }
 pub async fn recv_string<R: AsyncRead + Unpin>(mut dest: R) -> Result<String, String> {
