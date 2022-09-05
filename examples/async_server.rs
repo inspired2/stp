@@ -1,7 +1,9 @@
 use tcp_smart_socket::SocketServer;
+use env_logger::init;
 
 #[tokio::main]
 async fn main() -> Result<(), ()> {
+    init();
     let addr = "127.0.0.1:8282";
     let smart_socket = smart_house::PowerSocket {
         name: "some_socket".into(),
@@ -9,7 +11,6 @@ async fn main() -> Result<(), ()> {
         description: "socket in a room".into(),
         power_consumption: 0,
     };
-
     let mut server = SocketServer::with_addr(addr, smart_socket).await.unwrap();
     let handle = tokio::spawn(async move { server.run().await });
     let stdin = std::io::stdin();

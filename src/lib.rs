@@ -25,19 +25,21 @@ pub async fn send_string<D: AsRef<str>, W: AsyncWrite + Unpin>(
 
     dest.flush().await?;
     dest.write_all(data).await?;
-    
+
     dest.flush().await?;
     Ok(())
 }
 pub async fn recv_string<R: AsyncRead + Unpin>(mut dest: R) -> Result<String, String> {
     let mut buf = [0_u8; 4];
-    dest.read_exact(&mut buf).await.map_err(|e|e.to_string())?;
+    dest.read_exact(&mut buf).await.map_err(|e| e.to_string())?;
 
     let str_len = u32::from_be_bytes(buf);
     let mut str_buf = vec![0_u8; str_len as usize];
-    dest.read_exact(&mut str_buf).await.map_err(|e| e.to_string())?;
+    dest.read_exact(&mut str_buf)
+        .await
+        .map_err(|e| e.to_string())?;
 
-    let string = String::from_utf8(str_buf).map_err(|e|e.to_string())?;
+    let string = String::from_utf8(str_buf).map_err(|e| e.to_string())?;
     Ok(string)
 }
 
