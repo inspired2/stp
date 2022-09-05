@@ -18,3 +18,10 @@ Available command codes will be printed upon running client.
 cargo run --example smart_socket_client
 
 ### 3. run commands from the list
+
+
+# UPDATE
+
+## Async server for SmartSocketUI:
+
+RUST_LOG=debug cargo run --example async_server
